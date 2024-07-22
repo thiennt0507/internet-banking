@@ -1,0 +1,25 @@
+# @format
+server:
+  port: 8086
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8081/eureka
+spring:
+  application:
+    name: utility-payment-service
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3309/utility_payment
+    username: root
+    password: 123456
+  jpa:
+    hibernate:
+      ddl-auto: update
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+#  docker for database utility:  docker run -dp 3309:3306 --name utility-payment -e MYSQL_ROOT_PASSWORD=123456 mysql

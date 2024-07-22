@@ -1,0 +1,27 @@
+# @format
+
+server:
+  port: 8083
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8081/eureka
+
+spring:
+  application:
+    name: core-banking-service
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3307/core_banking
+    username: root
+    password: 123456
+  jpa:
+    hibernate:
+      ddl-auto: update
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+#  docker for database core banking:  docker run -dp 3307:3306 --name core-banking -e MYSQL_ROOT_PASSWORD=123456 mysql

@@ -1,0 +1,27 @@
+# @format
+
+server:
+  port: 8085
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8081/eureka
+
+spring:
+  application:
+    name: fund-transfer-service
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3308/fund_transfer
+    username: root
+    password: 123456
+  jpa:
+    hibernate:
+      ddl-auto: update
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+#  docker for database fund transfer:  docker run -dp 3308:3306 --name fund-transfer -e MYSQL_ROOT_PASSWORD=123456 mysql
