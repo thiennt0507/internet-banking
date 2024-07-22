@@ -6,6 +6,6 @@ spring:
         config:
             server:
                 git:
-                    uri:
+                    uri: https://github.com/thiennt0507/internet-banking.git
                     search-paths: configuration
                     default-label: main
