@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.thien.finance.identity_service.dto.AuthRequest;
-import com.thien.finance.identity_service.entity.UserCredential;
+import com.thien.finance.identity_service.model.dto.AuthRequest;
+import com.thien.finance.identity_service.model.entity.UserCredential;
 import com.thien.finance.identity_service.service.AuthService;
 
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping(value = "/api/v1/bank-users")
 public class AuthController {
     @Autowired
     private AuthService authService;
@@ -28,6 +28,7 @@ public class AuthController {
 
     @PostMapping("/register")
     public String addNewUser(@RequestBody UserCredential user) {
+        System.out.println("Register in Indentity Service");
         return authService.saveUser(user);
     }
     

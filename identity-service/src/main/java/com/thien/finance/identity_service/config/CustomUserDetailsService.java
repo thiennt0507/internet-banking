@@ -8,8 +8,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
-import com.thien.finance.identity_service.entity.UserCredential;
-import com.thien.finance.identity_service.repository.UserCredentialRepository;
+import com.thien.finance.identity_service.model.entity.UserCredential;
+import com.thien.finance.identity_service.model.repository.UserCredentialRepository;
 
 @Component
 public class CustomUserDetailsService implements UserDetailsService{

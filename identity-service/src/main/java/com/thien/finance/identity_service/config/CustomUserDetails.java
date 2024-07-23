@@ -5,7 +5,7 @@ import java.util.Collection;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import com.thien.finance.identity_service.entity.UserCredential;
+import com.thien.finance.identity_service.model.entity.UserCredential;
 
 public class CustomUserDetails implements UserDetails{
     private String username;

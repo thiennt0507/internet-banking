@@ -22,4 +22,19 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
+
+  security:
+    oauth2:
+      client:
+        registration:
+          github:
+            client-id: Ov23liitt20qjqsXmTj4
+            client-secret: b0524b81d48a0fa9b9052ec4bfedbe7bf077aeab
+          google:
+            client-id: 1031581665110-c3gqpjv79925umrisiap27qqtvomus04.apps.googleusercontent.com
+            client-secret: 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
 #  docker for database identity:  docker run -dp 3306:3306 --name identity -e MYSQL_ROOT_PASSWORD=123456 mysql
+
+# Google login
+
+# Github login

@@ -12,9 +12,27 @@ spring:
   cloud:
     gateway:
       routes:
-        - id: user-service
-          uri: http://user-service:8081
+        - id: identity-service
+          uri: ${IDENTITY_ROUTE_URI:http://localhost:8089}
           predicates:
-            - Path=/users/**
+            - Path=/identity/**
+          filters:
+            - StripPrefix=1
+        - id: core-banking-service
+          uri: http://localhost:8083
+          predicates:
+            - Path=/core-banking/**
+          filters:
+            - StripPrefix=1
+        - id: fund-transfer-service
+          uri: http://localhost:8085
+          predicates:
+            - Path=/fund-transfer/**
+          filters:
+            - StripPrefix=1
+        - id: utility-payment-service
+          uri: http://localhost:8086
+          predicates:
+            - Path=/utility-payment/**
           filters:
             - StripPrefix=1
