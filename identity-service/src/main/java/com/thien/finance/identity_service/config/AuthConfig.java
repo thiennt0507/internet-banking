@@ -20,6 +20,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
+import com.thien.finance.identity_service.config.jwt.JwtTokenUtils;
 import com.thien.finance.identity_service.config.user.UserInfoManagerConfig;
 
 import jakarta.servlet.http.HttpServletResponse;
@@ -35,10 +36,18 @@ public class AuthConfig {
     @Autowired
     private UserInfoManagerConfig userInfoManagerConfig;
     
+    @Autowired
+    private  RSAKeyRecord rsaKeyRecord;
+
+    @Autowired
+    private JwtTokenUtils jwtTokenUtils;
+    
     @Bean
     public UserDetailsService userDetailsService(){
         return new CustomUserDetailsService();
     }
+
+
 
     // @Bean
     // public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {

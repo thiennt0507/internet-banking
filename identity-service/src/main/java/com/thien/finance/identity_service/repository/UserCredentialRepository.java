@@ -8,4 +8,5 @@ import com.thien.finance.identity_service.entity.UserCredential;
 
 public interface UserCredentialRepository extends JpaRepository<UserCredential, Long>{
     Optional<UserCredential> findByName(String username);
+    UserCredential findByEmail(String email);
 }
