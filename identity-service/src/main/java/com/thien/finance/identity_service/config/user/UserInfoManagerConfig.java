@@ -15,11 +15,11 @@ public class UserInfoManagerConfig implements UserDetailsService{
     private final UserCredentialRepository userCredentialRepository;
 
     @Override
-    public UserDetails loadUserByUsername(String name) throws UsernameNotFoundException {
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         return userCredentialRepository
-                .findByName(name)
+                .findByEmail(email)
                 .map(UserInfoConfig::new)
-                .orElseThrow(()-> new UsernameNotFoundException("UserEmail: " + name + " does not exist"));
+                .orElseThrow(()-> new UsernameNotFoundException("UserEmail: " + email + " does not exist"));
     }
 
 }

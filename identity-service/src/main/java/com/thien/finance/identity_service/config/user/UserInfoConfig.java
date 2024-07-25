@@ -31,7 +31,7 @@ public class UserInfoConfig implements UserDetails{
 
     @Override
     public String getUsername() {
-        return credentials.getName();
+        return credentials.getUserName();
     }
 
     @Override

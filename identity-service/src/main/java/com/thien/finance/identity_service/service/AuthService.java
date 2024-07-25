@@ -1,13 +1,23 @@
 package com.thien.finance.identity_service.service;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
+import com.thien.finance.identity_service.config.jwt.JwtTokenGenerator;
+import com.thien.finance.identity_service.dto.AuthResponseDto;
+import com.thien.finance.identity_service.dto.TokenType;
+import com.thien.finance.identity_service.dto.UserRegistrationDto;
 import com.thien.finance.identity_service.exception.EntityNotFoundException;
 import com.thien.finance.identity_service.exception.GlobalErrorCode;
 import com.thien.finance.identity_service.exception.InvalidEmailException;
@@ -15,70 +25,216 @@ import com.thien.finance.identity_service.exception.UserAlreadyRegisteredExcepti
 import com.thien.finance.identity_service.model.dto.Status;
 import com.thien.finance.identity_service.model.dto.User;
 import com.thien.finance.identity_service.model.dto.UserUpdateRequest;
+import com.thien.finance.identity_service.model.entity.RefreshTokenEntity;
 import com.thien.finance.identity_service.model.entity.UserCredential;
+import com.thien.finance.identity_service.model.mapper.UserInfoMapper;
 import com.thien.finance.identity_service.model.mapper.UserMapper;
+import com.thien.finance.identity_service.model.repository.RefreshTokenRepo;
 import com.thien.finance.identity_service.model.repository.UserCredentialRepository;
 import com.thien.finance.identity_service.model.rest.response.UserResponse;
 import com.thien.finance.identity_service.service.rest.BankingCoreRestClient;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthService {
-    @Autowired
-    private UserCredentialRepository repository;
+    private final UserCredentialRepository userCredentialRepository;
 
-    private final BankingCoreRestClient bankingCoreRestClient;
+
+    private final RefreshTokenRepo refreshTokenRepo;
+
+    private final JwtTokenGenerator jwtTokenGenerator;
     
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final BankingCoreRestClient bankingCoreRestClient;
 
-    @Autowired
-    private JWTService jwtService;
+    private final UserInfoMapper userInfoMapper;
+    
+    private final PasswordEncoder passwordEncoder;
+
+    private final JWTService jwtService;
 
     private UserMapper userMapper = new UserMapper();
 
-    public String saveUser(UserCredential userCredential) {
-        List<UserCredential> userCredentials = repository.findByEmail(userCredential.getEmail());
 
-        if (!userCredentials.isEmpty()) {
-            throw new UserAlreadyRegisteredException("This email already registered as a user. Please check and retry", GlobalErrorCode.ERROR_EMAIL_REGISTERED);
+    public AuthResponseDto getJwtTokensAfterAuthentication(Authentication authentication, HttpServletResponse response) {
+        try
+        {
+            System.out.println(authentication.getName());
+            var userCredential = userCredentialRepository.findByUserName(authentication.getName())
+                    .orElseThrow(()->{
+                        log.error("[AuthService:userSignInAuth] User: {} not found", authentication.getName());
+                        return new ResponseStatusException(HttpStatus.NOT_FOUND,"USER NOT FOUND ");});
+
+            String accessToken = jwtTokenGenerator.generateAccessToken(authentication);
+            String refreshToken = jwtTokenGenerator.generateRefreshToken(authentication);
+
+            log.info("[AuthService:userSignInAuth] Refresh token: {}", refreshToken);
+            //Let's save the refreshToken as well
+            saveUserRefreshToken(userCredential,refreshToken);
+            //Creating the cookie
+            creatRefreshTokenCookie(response,refreshToken);
+
+            log.info("[AuthService:userSignInAuth] Access token for user:{}, has been generated",userCredential.getUserName());
+            return  AuthResponseDto.builder()
+                    .accessToken(accessToken)
+                    .accessTokenExpiry(15 * 60)
+                    .userName(userCredential.getUserName())
+                    .tokenType(TokenType.Bearer)
+                    .build();
+
+
+        }catch (Exception e){
+            log.error("[AuthService:userSignInAuth]Exception while authenticating the user due to :" + e.getMessage());
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,"Please Try Again");
         }
-
-        UserResponse userResponse = bankingCoreRestClient.getUser(userCredential.getIdentification());
-
-        if (userResponse.getId() != null) {
-            if (!userResponse.getEmail().equals(userCredential.getEmail())) {
-                throw new InvalidEmailException("Incorrect email. Please check and retry", GlobalErrorCode.ERROR_INVALID_EMAIL);
-            }
-        }
-
-
-
-        userCredential.setPassword(passwordEncoder.encode(userCredential.getPassword()));
-        repository.save(userCredential);
-        return "user added to the system";
     }
 
+    private void saveUserRefreshToken(UserCredential userCredential, String refreshToken) {
+        var refreshTokenEntity = RefreshTokenEntity.builder()
+                .user(userCredential)
+                .refreshToken(refreshToken)
+                .revoked(false)
+                .build();
+        refreshTokenRepo.save(refreshTokenEntity);
+    }
+
+    private Cookie creatRefreshTokenCookie(HttpServletResponse response, String refreshToken) {
+        Cookie refreshTokenCookie = new Cookie("refresh_token",refreshToken);
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setSecure(true);
+        refreshTokenCookie.setMaxAge(15 * 24 * 60 * 60 ); // in seconds
+        response.addCookie(refreshTokenCookie);
+        return refreshTokenCookie;
+    }
+
+
+    public Object getAccessTokenUsingRefreshToken(String authorizationHeader) {
+
+        if(!authorizationHeader.startsWith(TokenType.Bearer.name())){
+            return new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,"Please verify your token type");
+        }
+
+        final String refreshToken = authorizationHeader.substring(7);
+
+        //Find refreshToken from database and should not be revoked : Same thing can be done through filter.
+        var refreshTokenEntity = refreshTokenRepo.findByRefreshToken(refreshToken)
+                .filter(tokens-> !tokens.isRevoked())
+                .orElseThrow(()-> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,"Refresh token revoked"));
+
+        UserCredential userCredential = refreshTokenEntity.getUser();
+
+        //Now create the Authentication object
+        Authentication authentication =  createAuthenticationObject(userCredential);
+
+        //Use the authentication object to generate new accessToken as the Authentication object that we will have may not contain correct role.
+        String accessToken = jwtTokenGenerator.generateAccessToken(authentication);
+
+        return  AuthResponseDto.builder()
+                .accessToken(accessToken)
+                .accessTokenExpiry(5 * 60)
+                .userName(userCredential.getUserName())
+                .tokenType(TokenType.Bearer)
+                .build();
+    }
+
+    private static Authentication createAuthenticationObject(UserCredential userCredential) {
+        // Extract user details from UserDetailsEntity
+        String username = userCredential.getEmail();
+        String password = userCredential.getPassword();
+        String roles = userCredential.getRoles();
+
+        // Extract authorities from roles (comma-separated)
+        String[] roleArray = roles.split(",");
+        GrantedAuthority[] authorities = Arrays.stream(roleArray)
+                .map(role -> (GrantedAuthority) role::trim)
+                .toArray(GrantedAuthority[]::new);
+
+        return new UsernamePasswordAuthenticationToken(username, password, Arrays.asList(authorities));
+    }
+
+    public AuthResponseDto registerUser(UserRegistrationDto userRegistrationDto,
+                                        HttpServletResponse httpServletResponse) {
+        try{
+            log.info("[AuthService:registerUser]User Registration Started with :::{}",userRegistrationDto);
+
+            Optional<UserCredential> user = userCredentialRepository.findByEmail(userRegistrationDto.email());
+            if(user.isPresent()){
+                throw new Exception("User Already Exist");
+            }
+
+            UserCredential userDetailsEntity = userInfoMapper.convertToEntity(userRegistrationDto);
+            Authentication authentication = createAuthenticationObject(userDetailsEntity);
+
+
+            // Generate a JWT token
+            String accessToken = jwtTokenGenerator.generateAccessToken(authentication);
+            String refreshToken = jwtTokenGenerator.generateRefreshToken(authentication);
+
+            UserCredential savedUserDetails = userCredentialRepository.save(userDetailsEntity);
+
+            saveUserRefreshToken(userDetailsEntity,refreshToken);
+
+            creatRefreshTokenCookie(httpServletResponse, refreshToken);
+
+            log.info("[AuthService:registerUser] User:{} Successfully registered",savedUserDetails.getUserName());
+            return   AuthResponseDto.builder()
+                    .accessToken(accessToken)
+                    .accessTokenExpiry(5 * 60)
+                    .userName(savedUserDetails.getUserName())
+                    .tokenType(TokenType.Bearer)
+                    .build();
+
+
+        }catch (Exception e){
+            log.error("[AuthService:registerUser]Exception while registering the user due to :"+e.getMessage());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,e.getMessage());
+        }
+    }
+
+    // public String saveUser(UserCredential userCredential) {
+    //     Optional<UserCredential> userCredentials = userCredentialRepository.findByEmail(userCredential.getEmail());
+
+    //     if (!userCredentials.isEmpty()) {
+    //         throw new UserAlreadyRegisteredException("This email already registered as a user. Please check and retry", GlobalErrorCode.ERROR_EMAIL_REGISTERED);
+    //     }
+
+    //     UserResponse userResponse = bankingCoreRestClient.getUser(userCredential.getIdentification());
+
+    //     if (userResponse.getId() != null) {
+    //         if (!userResponse.getEmail().equals(userCredential.getEmail())) {
+    //             throw new InvalidEmailException("Incorrect email. Please check and retry", GlobalErrorCode.ERROR_INVALID_EMAIL);
+    //         }
+    //     }
+
+
+
+    //     userCredential.setPassword(passwordEncoder.encode(userCredential.getPassword()));
+    //     userCredentialRepository.save(userCredential);
+    //     return "user added to the system";
+    // }
+
     public List<UserCredential> getUsers(Pageable pageable) {
-        return repository.findAll(pageable).getContent();
+        return userCredentialRepository.findAll(pageable).getContent();
     }
 
     public User getUser(Long userId) {
-        return userMapper.convertToDto(repository.findById(userId).orElseThrow(EntityNotFoundException::new));
+        return userMapper.convertToDto(userCredentialRepository.findById(userId).orElseThrow(EntityNotFoundException::new));
     }
 
     public User updateUser(Long id, UserUpdateRequest userUpdateRequest) {
-        UserCredential userCredential = repository.findById(id).orElseThrow(EntityNotFoundException::new);
+        UserCredential userCredential = userCredentialRepository.findById(id).orElseThrow(EntityNotFoundException::new);
 
         if (userUpdateRequest.getStatus() == Status.APPROVED) {
             userCredential.setEnableUser(true);
-            userCredential.setVerifyEmail(true);
         }
 
         userCredential.setStatus(userUpdateRequest.getStatus());
-        return userMapper.convertToDto(repository.save(userCredential));
+        return userMapper.convertToDto(userCredentialRepository.save(userCredential));
     }
 
     public String generateToken(String username) {

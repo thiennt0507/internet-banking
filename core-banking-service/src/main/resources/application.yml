@@ -10,7 +10,7 @@ eureka:
 
 spring:
   application:
-    name: core-banking-service
+    name: CORE-BANKING-SERVICE
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3307/core_banking

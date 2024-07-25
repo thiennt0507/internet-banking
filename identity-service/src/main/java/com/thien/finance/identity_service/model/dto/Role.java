@@ -1,5 +1,5 @@
 package com.thien.finance.identity_service.model.dto;
 
 public enum Role {
-    MANAGER, ADMIN, USER
+    ROLE_MANAGER, ROLE_ADMIN, ROLE_USER
 }

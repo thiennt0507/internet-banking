@@ -10,7 +10,7 @@ eureka:
 
 spring:
   application:
-    name: fund-transfer-service
+    name: FUND-TRANSFER-SERVICE
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3308/fund_transfer

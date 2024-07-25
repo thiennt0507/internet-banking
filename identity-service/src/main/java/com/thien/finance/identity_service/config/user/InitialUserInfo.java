@@ -31,19 +31,19 @@ public class InitialUserInfo implements CommandLineRunner{
     @Override
     public void run(String... args) throws Exception {
         UserCredential manager = new UserCredential();
-        manager.setName("Manager");
+        manager.setUserName("Manager");
         manager.setPassword(passwordEncoder.encode("password"));
         manager.setRoles("ROLE_MANAGER");
         manager.setEmail("manager@manager.com");
 
         UserCredential admin = new UserCredential();
-        admin.setName("Admin");
+        admin.setUserName("Admin");
         admin.setPassword(passwordEncoder.encode("password"));
         admin.setRoles("ROLE_ADMIN");
         admin.setEmail("admin@admin.com");
 
         UserCredential user = new UserCredential();
-        user.setName("User");
+        user.setUserName("User");
         user.setPassword(passwordEncoder.encode("password"));
         user.setRoles("ROLE_USER");
         user.setEmail("user@user.com");

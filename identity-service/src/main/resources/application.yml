@@ -8,7 +8,7 @@ eureka:
       defaultZone: http://localhost:8081/eureka
 spring:
   application:
-    name: identity-service
+    name: IDENTITY-SERVICE
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/user
@@ -16,7 +16,7 @@ spring:
     password: 123456
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create-drop
       naming:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
     properties:
@@ -35,6 +35,10 @@ spring:
             client-secret: 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
 #  docker for database identity:  docker run -dp 3306:3306 --name identity -e MYSQL_ROOT_PASSWORD=123456 mysql
 
-# Google login
+jwt:
+  rsa-private-key: classpath:certs/privateKey.pem
+  rsa-public-key: classpath:certs/publicKey.pem
 
-# Github login
+logging:
+  level:
+    org.springframework.security: trace

@@ -8,12 +8,12 @@ eureka:
 
 spring:
   application:
-    name: api-gateway
+    name: API-GATEWAY
   cloud:
     gateway:
       routes:
-        - id: identity-service
-          uri: ${IDENTITY_ROUTE_URI:http://localhost:8089}
+        - id: IDENTITY-SERVICE
+          uri: lb://IDENTITY-SERVICE:8089
           predicates:
             - Path=/identity/**
           filters:

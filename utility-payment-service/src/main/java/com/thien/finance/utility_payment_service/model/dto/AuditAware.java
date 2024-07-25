@@ -10,6 +10,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.io.Serializable;
 import java.time.Instant;
+import java.util.Date;
 
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.MappedSuperclass;

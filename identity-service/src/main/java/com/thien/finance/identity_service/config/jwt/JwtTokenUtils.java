@@ -13,7 +13,7 @@ import java.time.Instant;
 import java.util.Objects;
 
 /**
- * @author atquil
+ * @author Nguyen Thanh Thien
  */
 @Component
 @RequiredArgsConstructor
@@ -36,10 +36,10 @@ public class JwtTokenUtils {
     }
 
     private final UserCredentialRepository userCredentialRepository;
-    public UserDetails userDetails(String email){
+    public UserDetails userDetails(String userName){
         return userCredentialRepository
-                .findByEmail(email)
+                .findByUserName(userName)
                 .map(UserInfoConfig::new)
-                .orElseThrow(()-> new UsernameNotFoundException("UserEmail: "+email+" does not exist"));
+                .orElseThrow(()-> new UsernameNotFoundException("UserEmail: "+ userName +" does not exist"));
     }
 }

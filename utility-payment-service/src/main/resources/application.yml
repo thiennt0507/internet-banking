@@ -8,7 +8,7 @@ eureka:
       defaultZone: http://localhost:8081/eureka
 spring:
   application:
-    name: utility-payment-service
+    name: UTILITY-PAYMENT-SERVICE
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3309/utility_payment
