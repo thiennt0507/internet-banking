@@ -22,7 +22,7 @@ public class TransactionController {
     private final TransactionService transactionService;
 
     @PostMapping("/fund-transfer")
-    public ResponseEntity fundTransfer(@RequestBody FundTransferRequest fundTransferRequest) {
+    public ResponseEntity<?> fundTransfer(@RequestBody FundTransferRequest fundTransferRequest) {
 
         log.info("Fund transfer initiated in core bank from {}", fundTransferRequest.toString());
         return ResponseEntity.ok(transactionService.fundTransfer(fundTransferRequest));
@@ -30,7 +30,7 @@ public class TransactionController {
     }
 
     @PostMapping("/util-payment")
-    public ResponseEntity utilPayment(@RequestBody UtilityPaymentRequest utilityPaymentRequest) {
+    public ResponseEntity<?> utilPayment(@RequestBody UtilityPaymentRequest utilityPaymentRequest) {
 
         log.info("Utility Payment initiated in core bank from {}", utilityPaymentRequest.toString());
         return ResponseEntity.ok(transactionService.utilPayment(utilityPaymentRequest));

@@ -13,16 +13,18 @@ public class GatewayConfiguration {
     private static final String HTTP_HEADER_AUTH_USER_ID = "X-Auth-Id";
     private static final String UNAUTHORIZED_USER_NAME = "SYSTEM USER";
 
-    // @Bean
-    // public GlobalFilter customGlobalFilter() {
-    //     return (exchange, chain) -> exchange.getPrincipal().map(Principal::getName).defaultIfEmpty(UNAUTHORIZED_USER_NAME).map(principal -> {
-    //         // adds header to proxied request
-    //         exchange.getRequest().mutate()
-    //             .header(HTTP_HEADER_AUTH_USER_ID, principal)
-    //             .build();
-    //         return exchange;
-    //     }).flatMap(chain::filter).then(Mono.fromRunnable(() -> {
+    @Bean
+    public GlobalFilter customGlobalFilter() {
+        return (exchange, chain) -> exchange.getPrincipal().map(Principal::getName).defaultIfEmpty(UNAUTHORIZED_USER_NAME).map(principal -> {
 
-    //     }));
-    // }
+            System.out.println(principal);
+            // adds header to proxied request
+            exchange.getRequest().mutate()
+                .header(HTTP_HEADER_AUTH_USER_ID, principal)
+                .build();
+            return exchange;
+        }).flatMap(chain::filter).then(Mono.fromRunnable(() -> {
+
+        }));
+    }
 }

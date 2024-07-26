@@ -36,3 +36,11 @@ spring:
             - Path=/utility-payment/**
           filters:
             - StripPrefix=1
+
+jwt:
+  rsa-private-key: classpath:certs/privateKey.pem
+  rsa-public-key: classpath:certs/publicKey.pem
+
+logging:
+  level:
+    org.springframework.security: trace

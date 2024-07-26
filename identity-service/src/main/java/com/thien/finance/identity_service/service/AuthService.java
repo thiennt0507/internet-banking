@@ -163,6 +163,7 @@ public class AuthService {
             log.info("[AuthService:registerUser]User Registration Started with :::{}",userRegistrationDto);
 
             Optional<UserCredential> user = userCredentialRepository.findByEmail(userRegistrationDto.email());
+
             if(user.isPresent()){
                 throw new Exception("User Already Exist");
             }
@@ -190,7 +191,7 @@ public class AuthService {
                     .build();
 
 
-        }catch (Exception e){
+        } catch (Exception e){
             log.error("[AuthService:registerUser]Exception while registering the user due to :"+e.getMessage());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,e.getMessage());
         }

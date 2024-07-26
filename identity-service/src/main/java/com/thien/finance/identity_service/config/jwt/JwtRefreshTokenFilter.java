@@ -44,7 +44,7 @@ public class JwtRefreshTokenFilter extends OncePerRequestFilter {
         try {
             log.info("[JwtRefreshTokenFilter:doFilterInternal] :: Started ");
 
-            log.info("[JwtRefreshTokenFilter:doFilterInternal]Filtering the Http Request:{}", request.getRequestURI());
+            log.info("[JwtRefreshTokenFilter:doFilterInternal]Filtering the Http Request: {}", request.getRequestURI());
 
 
             final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);

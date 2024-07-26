@@ -74,20 +74,6 @@ public class AuthConfig {
     }
 
 
-
-    // @Bean
-    // public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-
-    //     return http.csrf(csrf -> csrf.disable())
-    //             .authorizeHttpRequests(requests -> {
-    //                 requests.requestMatchers("/auth/register", "/auth/token", "/auth/validate").permitAll();
-    //                 requests.anyRequest().authenticated();
-    //             })
-    //             .oauth2Login(withDefaults())
-    //             .formLogin(withDefaults())
-    //             .build();
-    // }
-
     @Order(1)
     @Bean
     public SecurityFilterChain signInSecurityFilterChain(HttpSecurity httpSecurity) throws Exception{
@@ -109,7 +95,7 @@ public class AuthConfig {
     @Bean
     public SecurityFilterChain apiSecurityFilterChain(HttpSecurity httpSecurity) throws Exception{
         return httpSecurity
-                .securityMatcher(new AntPathRequestMatcher("/api/**"))
+                .securityMatcher(new AntPathRequestMatcher("/api-message/**"))
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(withDefaults()))
@@ -124,21 +110,11 @@ public class AuthConfig {
                 .build();
     }
 
-    // public SecurityFilterChain apiSecurityFilterChain(HttpSecurity httpSecurity) throws Exception{
-    //     return httpSecurity
-    //             .securityMatcher(new AntPathRequestMatcher("/api/**"))
-    //             .csrf(AbstractHttpConfigurer::disable)
-    //             .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
-    //             .userDetailsService(userInfoManagerConfig)
-    //             .httpBasic(withDefaults())
-    //             .build();
-    // }
-
     @Order(3)
     @Bean
     public SecurityFilterChain refreshTokenSecurityFilterChain(HttpSecurity httpSecurity) throws Exception{
         return httpSecurity
-                .securityMatcher(new AntPathRequestMatcher("/refresh-token/**"))
+                .securityMatcher(new AntPathRequestMatcher("/api/v1/bank-users/refresh-token/**"))
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(withDefaults()))
@@ -157,14 +133,14 @@ public class AuthConfig {
     @Bean
     public SecurityFilterChain logoutSecurityFilterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity
-                .securityMatcher(new AntPathRequestMatcher("/logout/**"))
+                .securityMatcher(new AntPathRequestMatcher("/api/v1/bank-users/logout/**"))
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(withDefaults()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(new JwtAccessTokenFilter(rsaKeyRecord,jwtTokenUtils), UsernamePasswordAuthenticationFilter.class)
                 .logout(logout -> logout
-                        .logoutUrl("/logout")
+                        .logoutUrl("/api/v1/bank-users/logout")
                         .addLogoutHandler(logoutHandlerService)
                         .logoutSuccessHandler(((request, response, authentication) -> SecurityContextHolder.clearContext()))
                 )
@@ -180,7 +156,7 @@ public class AuthConfig {
     @Bean
     public SecurityFilterChain registerSecurityFilterChain(HttpSecurity httpSecurity) throws Exception{
         return httpSecurity
-                .securityMatcher(new AntPathRequestMatcher("/sign-up/**"))
+                .securityMatcher(new AntPathRequestMatcher("/api/v1/bank-users/sign-up/**"))
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth ->
                         auth.anyRequest().permitAll())
@@ -188,17 +164,6 @@ public class AuthConfig {
                 .build();
     }
 
-    @Order(6)
-    @Bean
-    public SecurityFilterChain h2ConsoleSecurityFilterChainConfig(HttpSecurity httpSecurity) throws Exception{
-        return httpSecurity
-                .securityMatcher(new AntPathRequestMatcher(("/h2-console/**")))
-                .authorizeHttpRequests(auth->auth.anyRequest().permitAll())
-                .csrf(csrf -> csrf.ignoringRequestMatchers(AntPathRequestMatcher.antMatcher("/h2-console/**")))
-                // to display the h2Console in Iframe
-                .headers(headers -> headers.frameOptions(withDefaults()).disable())
-                .build();
-    }
 
 
     @Bean
