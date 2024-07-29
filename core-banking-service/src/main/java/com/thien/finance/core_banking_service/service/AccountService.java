@@ -37,5 +37,4 @@ public class AccountService {
     public UtilityAccount readUtilityAccount(Long id) {
         return utilityAccountMapper.convertToDto(utilityAccountRepository.findById(id).orElseThrow(EntityNotFoundException::new));
     }
-
 }

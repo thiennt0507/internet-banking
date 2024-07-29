@@ -26,5 +26,4 @@ public class FundTransferEntity extends AuditAware {
 
     @Enumerated(EnumType.STRING)
     private TransactionStatus status;
-
 }

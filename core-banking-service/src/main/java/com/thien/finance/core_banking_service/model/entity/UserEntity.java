@@ -2,6 +2,8 @@ package com.thien.finance.core_banking_service.model.entity;
 
 import java.util.List;
 
+import com.thien.finance.core_banking_service.model.Role;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -24,10 +26,10 @@ public class UserEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String firstName;
-    private String lastName;
+    private String userName;
     private String email;
     private String identificationNumber;
+    private Role role;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<BankAccountEntity> accounts;

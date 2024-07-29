@@ -14,6 +14,7 @@ public class SecurityConfiguration {
             
             // Allow user registration api endpoint
             exchanges.pathMatchers("/identity/api/**").permitAll();
+            exchanges.pathMatchers("/**").permitAll();
             
             // exchanges.pathMatchers("/identity/api/v1/bank-users/refresh-token").permitAll();
             // exchanges.pathMatchers("/identity/api/v1/bank-users/logout").permitAll();
