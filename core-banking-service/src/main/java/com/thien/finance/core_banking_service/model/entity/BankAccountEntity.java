@@ -1,6 +1,7 @@
 package com.thien.finance.core_banking_service.model.entity;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import com.thien.finance.core_banking_service.model.AccountStatus;
 import com.thien.finance.core_banking_service.model.AccountType;
@@ -31,7 +32,10 @@ public class BankAccountEntity {
 
     private BigDecimal actualBalance;
 
-    @ManyToOne
+    @ManyToOne()
     @JoinColumn(name = "user_id")
     private UserEntity user;
+
+    @OneToMany(mappedBy = "account", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<TransactionEntity> transactions;
 }

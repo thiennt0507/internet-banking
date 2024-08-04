@@ -11,13 +11,11 @@ import com.thien.finance.fun_transfer_service.model.dto.request.FundTransferRequ
 import com.thien.finance.fun_transfer_service.model.dto.response.AccountResponse;
 import com.thien.finance.fun_transfer_service.model.dto.response.FundTransferResponse;
 
-@FeignClient(value = "core-banking-service", configuration = CustomFeignClientConfiguration.class)
+@FeignClient(value = "CORE-BANKING-SERVICE", configuration = CustomFeignClientConfiguration.class)
 public interface BankingCoreFeignClient {
-
     @RequestMapping(path = "/api/v1/account/bank-account/{account_number}", method = RequestMethod.GET)
     AccountResponse readAccount(@PathVariable("account_number") String accountNumber);
 
     @RequestMapping(path = "/api/v1/transaction/fund-transfer", method = RequestMethod.POST)
     FundTransferResponse fundTransfer(@RequestBody FundTransferRequest fundTransferRequest);
-
 }

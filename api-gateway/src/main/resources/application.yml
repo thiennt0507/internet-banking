@@ -1,5 +1,8 @@
 # @format
 
+app:
+  identityUrl: http://localhost:8089
+
 server.port: 8082
 eureka:
   client:
@@ -13,7 +16,8 @@ spring:
     gateway:
       routes:
         - id: IDENTITY-SERVICE
-          uri: lb://IDENTITY-SERVICE:8089
+          uri: http://localhost:8089
+          # uri: lb://identity-service:8089
           predicates:
             - Path=/identity/**
           filters:

@@ -34,6 +34,7 @@ public class JwtTokenGenerator {
         String permissions = getPermissionsFromRoles(roles);
 
         JwtClaimsSet claims = JwtClaimsSet.builder()
+                
                 .issuer("thien")
                 .issuedAt(Instant.now())
                 .expiresAt(Instant.now().plus(15 , ChronoUnit.MINUTES))
@@ -52,7 +53,8 @@ public class JwtTokenGenerator {
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer("thien")
                 .issuedAt(Instant.now())
-                .expiresAt(Instant.now().plus(15 , ChronoUnit.DAYS))
+                .expiresAt(Instant.now()
+                .plus(15 , ChronoUnit.DAYS))
                 .subject(authentication.getName())
                 .claim("scope", "REFRESH_TOKEN")
                 .build();
@@ -70,13 +72,13 @@ public class JwtTokenGenerator {
         Set<String> permissions = new HashSet<>();
 
         if (roles.contains("ROLE_ADMIN")) {
-            permissions.addAll(List.of("READ", "WRITE", "DELETE"));
+            permissions.addAll(List.of("ROLE_ADMIN"));
         }
         if (roles.contains("ROLE_MANAGER")) {
-            permissions.add("READ");
+            permissions.add("ROLE_MANAGER");
         }
         if (roles.contains("ROLE_USER")) {
-            permissions.add("READ");
+            permissions.add("ROLE_USER");
         }
 
         return String.join(" ", permissions);

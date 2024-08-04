@@ -6,9 +6,13 @@ import com.thien.finance.core_banking_service.model.AccountStatus;
 import com.thien.finance.core_banking_service.model.AccountType;
 
 import lombok.Data;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 
 @Data
+@Getter
+@Setter
 @RequiredArgsConstructor
 public class BankAccount {
     private Long id;

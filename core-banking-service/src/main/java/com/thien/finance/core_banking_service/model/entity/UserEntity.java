@@ -20,6 +20,7 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "banking_core_user")
+// @Builder
 public class UserEntity {
 
     @Id
@@ -28,10 +29,8 @@ public class UserEntity {
 
     private String userName;
     private String email;
-    private String identificationNumber;
-    private Role role;
+    private String role;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<BankAccountEntity> accounts;
-
 }

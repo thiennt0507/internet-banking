@@ -11,7 +11,7 @@ import com.thien.finance.utility_payment_service.model.rest.request.UtilityPayme
 import com.thien.finance.utility_payment_service.model.rest.response.AccountResponse;
 import com.thien.finance.utility_payment_service.model.rest.response.UtilityPaymentResponse;
 
-@FeignClient(name = "core-banking-service", configuration = CustomFeignClientConfiguration.class)
+@FeignClient(name = "CORE-BANKING-SERVICE", configuration = CustomFeignClientConfiguration.class)
 public interface BankingCoreRestClient {
 
     @RequestMapping(path = "/api/v1/account/bank-account/{account_number}", method = RequestMethod.GET)

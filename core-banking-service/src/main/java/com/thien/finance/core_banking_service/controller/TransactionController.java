@@ -1,6 +1,8 @@
 package com.thien.finance.core_banking_service.controller;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,11 +24,15 @@ public class TransactionController {
     private final TransactionService transactionService;
 
     @PostMapping("/fund-transfer")
-    public ResponseEntity<?> fundTransfer(@RequestBody FundTransferRequest fundTransferRequest) {
+    public ResponseEntity<?> fundTransfer(@RequestBody FundTransferRequest fundTransferRequest, Authentication authentication) {
 
         log.info("Fund transfer initiated in core bank from {}", fundTransferRequest.toString());
-        return ResponseEntity.ok(transactionService.fundTransfer(fundTransferRequest));
-
+        try {
+            
+            return ResponseEntity.ok(transactionService.fundTransfer(fundTransferRequest, authentication));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+        }
     }
 
     @PostMapping("/util-payment")
@@ -34,7 +40,6 @@ public class TransactionController {
 
         log.info("Utility Payment initiated in core bank from {}", utilityPaymentRequest.toString());
         return ResponseEntity.ok(transactionService.utilPayment(utilityPaymentRequest));
-
     }
 
 }

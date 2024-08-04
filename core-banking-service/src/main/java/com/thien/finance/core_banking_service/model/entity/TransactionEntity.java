@@ -1,6 +1,7 @@
 package com.thien.finance.core_banking_service.model.entity;
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 
 import com.thien.finance.core_banking_service.model.TransactionType;
 
@@ -15,7 +16,6 @@ import lombok.Setter;
 @Entity
 @Table(name = "banking_core_transaction")
 public class TransactionEntity {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -29,8 +29,9 @@ public class TransactionEntity {
 
     private String transactionId;
 
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "account_id", referencedColumnName = "id")
-    private BankAccountEntity account;
+    private Timestamp transactionDate;
 
+    @ManyToOne
+    @JoinColumn(name = "transaction_id")
+    private BankAccountEntity account;
 }

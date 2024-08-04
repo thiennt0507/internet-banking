@@ -28,7 +28,6 @@ public class JwtTokenUtils {
         boolean isTokenExpired = getIfTokenIsExpired(jwtToken);
         boolean isTokenUserSameAsDatabase = userName.equals(userDetails.getUsername());
         return !isTokenExpired  && isTokenUserSameAsDatabase;
-
     }
 
     private boolean getIfTokenIsExpired(Jwt jwtToken) {

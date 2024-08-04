@@ -42,3 +42,8 @@ jwt:
 logging:
   level:
     org.springframework.security: trace
+
+app:
+  service:
+    core-banking-url: http://localhost:8083/
+    core-banking-name: core-banking-service

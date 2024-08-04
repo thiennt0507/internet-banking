@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import com.thien.finance.identity_service.model.rest.response.UserResponse;
 
-@FeignClient(name = "core-banking-service")
+@FeignClient(name = "${app.service.core-banking-name}")
 public interface BankingCoreRestClient {
 
     @GetMapping("/api/v1/user/{identification}")

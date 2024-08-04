@@ -9,6 +9,12 @@ eureka:
       defaultZone: http://localhost:8081/eureka
 
 spring:
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+
   application:
     name: FUND-TRANSFER-SERVICE
   datasource:
@@ -25,3 +31,15 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
 #  docker for database fund transfer:  docker run -dp 3308:3306 --name fund-transfer -e MYSQL_ROOT_PASSWORD=123456 mysql
+
+rabbitmq:
+  queue:
+    name: message-queue
+    json:
+      name: message-queue-json
+  exchange:
+    name: message-exchange
+  routing:
+    key: message-queue-routing-key
+    json:
+      key: message-queue-routing-json-key

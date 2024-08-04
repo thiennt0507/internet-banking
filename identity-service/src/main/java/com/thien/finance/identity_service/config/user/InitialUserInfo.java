@@ -6,6 +6,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import com.thien.finance.identity_service.model.dto.Role;
 import com.thien.finance.identity_service.model.entity.UserCredential;
 import com.thien.finance.identity_service.model.repository.UserCredentialRepository;
 
@@ -33,19 +34,19 @@ public class InitialUserInfo implements CommandLineRunner{
         UserCredential manager = new UserCredential();
         manager.setUserName("Manager");
         manager.setPassword(passwordEncoder.encode("password"));
-        manager.setRoles("ROLE_MANAGER");
+        manager.setRoles(Role.ROLE_MANAGER.name());
         manager.setEmail("manager@manager.com");
 
         UserCredential admin = new UserCredential();
         admin.setUserName("Admin");
         admin.setPassword(passwordEncoder.encode("password"));
-        admin.setRoles("ROLE_ADMIN");
+        admin.setRoles(Role.ROLE_ADMIN.name());
         admin.setEmail("admin@admin.com");
 
         UserCredential user = new UserCredential();
         user.setUserName("User");
         user.setPassword(passwordEncoder.encode("password"));
-        user.setRoles("ROLE_USER");
+        user.setRoles(Role.ROLE_USER.name());
         user.setEmail("user@user.com");
 
         userCredentialRepository.saveAll(List.of(manager,admin,user));

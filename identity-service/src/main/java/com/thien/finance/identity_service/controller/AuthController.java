@@ -14,7 +14,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.thien.finance.identity_service.config.jwt.JwtTokenUtils;
+import com.thien.finance.identity_service.dto.ApiResponse;
 import com.thien.finance.identity_service.dto.UserRegistrationDto;
+import com.thien.finance.identity_service.dto.ValidateReponse;
 import com.thien.finance.identity_service.model.dto.AuthRequest;
 import com.thien.finance.identity_service.model.entity.UserCredential;
 import com.thien.finance.identity_service.service.AuthService;
@@ -37,11 +40,11 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 @RequestMapping(value = "/api/v1/bank-users")
 public class AuthController {
-    @Autowired
-    private AuthService authService;
+    private final AuthService authService;
 
-    @Autowired
-    private AuthenticationManager authenticationManager;
+    private final AuthenticationManager authenticationManager;
+
+    private final JwtTokenUtils jwtTokenUtils ;
 
 
     @PostMapping("/sign-in")
@@ -61,7 +64,7 @@ public class AuthController {
     public ResponseEntity<?> registerUser(@Valid @RequestBody UserRegistrationDto userRegistrationDto,
                                           BindingResult bindingResult, HttpServletResponse httpServletResponse){
 
-        log.info("[AuthController:registerUser] Signup Process Started for user:{}",userRegistrationDto.name());
+        log.info("[AuthController:registerUser] Signup Process Started for user:{}",userRegistrationDto.username());
         if (bindingResult.hasErrors()) {
             List<String> errorMessage = bindingResult.getAllErrors().stream()
                     .map(DefaultMessageSourceResolvable::getDefaultMessage)
@@ -71,6 +74,22 @@ public class AuthController {
         }
         return ResponseEntity.ok(authService.registerUser(userRegistrationDto,httpServletResponse));
     }
+
+    @PostMapping("/update")
+    public ResponseEntity<?> updateUser(@Valid @RequestBody UserRegistrationDto userRegistrationDto,
+                                          BindingResult bindingResult, HttpServletResponse httpServletResponse){
+
+        log.info("[AuthController:registerUser] Signup Process Started for user:{}",userRegistrationDto.username());
+        if (bindingResult.hasErrors()) {
+            List<String> errorMessage = bindingResult.getAllErrors().stream()
+                    .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                    .toList();
+            log.error("[AuthController:registerUser]Errors in user:{}",errorMessage);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
+        }
+        return ResponseEntity.ok(authService.registerUser(userRegistrationDto,httpServletResponse));
+    }
+
     
     @PostMapping("/token")
     public String getToken(@RequestBody AuthRequest authRequest) {
@@ -83,8 +102,15 @@ public class AuthController {
     }
 
     @GetMapping("/validate")
-    public String validateToken(@RequestParam("token") String token) {
-        authService.validateToken(token);
-        return "Token is valid";
+    public ApiResponse<ValidateReponse> validateToken(@RequestParam("token") String token) {
+        try {
+            authService.validateToken(token);
+            
+            return ApiResponse.<ValidateReponse>builder().result(ValidateReponse.builder().valid(true).build()).build();
+        } catch (Exception e) {
+            return ApiResponse.<ValidateReponse>builder().result(ValidateReponse.builder().valid(false).build()).build();
+            // TODO: handle exception
+        }
+    
     }
 }

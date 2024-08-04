@@ -1,8 +1,16 @@
 package com.thien.finance.core_banking_service.service;
 
 import java.math.BigDecimal;
+import java.sql.Date;
+import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import com.thien.finance.core_banking_service.exception.GlobalErrorCode;
@@ -18,23 +26,36 @@ import com.thien.finance.core_banking_service.model.entity.BankAccountEntity;
 import com.thien.finance.core_banking_service.model.entity.TransactionEntity;
 import com.thien.finance.core_banking_service.repository.BankAccountRepository;
 import com.thien.finance.core_banking_service.repository.TransactionRepository;
+import com.thien.finance.core_banking_service.service.impl.BaseRedisServiceImpl;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
 
 @Service
 @Transactional
-@RequiredArgsConstructor
-public class TransactionService {
-
+public class TransactionService extends BaseRedisServiceImpl{
     private final AccountService accountService;
     private final BankAccountRepository bankAccountRepository;
     private final TransactionRepository transactionRepository;
 
-    public FundTransferResponse fundTransfer(FundTransferRequest fundTransferRequest) {
+    public static final String HASH_KEY = "User";
 
+    public TransactionService(RedisTemplate<String, Object> redisTemplate, AccountService accountService, BankAccountRepository bankAccount, TransactionRepository transactionRepository) {
+        super(redisTemplate);
+        this.accountService = accountService;
+        this.bankAccountRepository = bankAccount;
+        this.transactionRepository = transactionRepository;
+    }
+
+    public FundTransferResponse fundTransfer(FundTransferRequest fundTransferRequest, Authentication authentication) {
+        String currentUser = authentication.getName();
         BankAccount fromBankAccount = accountService.readBankAccount(fundTransferRequest.getFromAccount());
+
+        // if (!currentUser.equals(fromBankAccount.getUser().getUserName())) {
+        //     throw new IllegalArgumentException("You are not authorized to perform this operation");
+        // }
+
+        
         BankAccount toBankAccount = accountService.readBankAccount(fundTransferRequest.getToAccount());
 
         //validating account balances
@@ -42,7 +63,6 @@ public class TransactionService {
 
         String transactionId = internalFundTransfer(fromBankAccount, toBankAccount, fundTransferRequest.getAmount());
         return FundTransferResponse.builder().message("Transaction successfully completed").transactionId(transactionId).build();
-
     }
 
     public UtilityPaymentResponse utilPayment(UtilityPaymentRequest utilityPaymentRequest) {
@@ -71,7 +91,6 @@ public class TransactionService {
 
         return UtilityPaymentResponse.builder().message("Utility payment successfully completed")
             .transactionId(transactionId).build();
-
     }
 
     private void validateBalance(BankAccount bankAccount, BigDecimal amount) {
@@ -89,21 +108,33 @@ public class TransactionService {
 
         fromBankAccountEntity.setActualBalance(fromBankAccountEntity.getActualBalance().subtract(amount));
         fromBankAccountEntity.setAvailableBalance(fromBankAccountEntity.getActualBalance().subtract(amount));
+
+        ZonedDateTime zonedDateTimeNow = ZonedDateTime.now(ZoneId.of("UTC"));
+
+        System.out.println("Time now is: " + zonedDateTimeNow.format(DateTimeFormatter.ofPattern("dd/MM/yyyy - HH:mm:ss")));
+
         bankAccountRepository.save(fromBankAccountEntity);
 
-        transactionRepository.save(TransactionEntity.builder().transactionType(TransactionType.FUND_TRANSFER)
+        transactionRepository.save(TransactionEntity.builder()
+            .transactionType(TransactionType.FUND_TRANSFER)
             .referenceNumber(toBankAccountEntity.getNumber())
+            .transactionDate(Timestamp.from(zonedDateTimeNow.toInstant()))
             .transactionId(transactionId)
-            .account(fromBankAccountEntity).amount(amount.negate()).build());
+            .account(fromBankAccountEntity).amount(amount.negate())
+            .build());
 
         toBankAccountEntity.setActualBalance(toBankAccountEntity.getActualBalance().add(amount));
         toBankAccountEntity.setAvailableBalance(toBankAccountEntity.getActualBalance().add(amount));
         bankAccountRepository.save(toBankAccountEntity);
 
-        transactionRepository.save(TransactionEntity.builder().transactionType(TransactionType.FUND_TRANSFER)
+        transactionRepository.save(TransactionEntity.builder()
+            .transactionType(TransactionType.FUND_TRANSFER)
             .referenceNumber(toBankAccountEntity.getNumber())
             .transactionId(transactionId)
-            .account(toBankAccountEntity).amount(amount).build());
+            .transactionDate(Timestamp.from(zonedDateTimeNow.toInstant()))
+            .account(toBankAccountEntity)
+            .amount(amount)
+            .build());
 
         return transactionId;
 

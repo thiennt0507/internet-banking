@@ -5,16 +5,23 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.thien.finance.identity_service.config.RSAKeyRecord;
 import com.thien.finance.identity_service.config.jwt.JwtTokenGenerator;
+import com.thien.finance.identity_service.config.jwt.JwtTokenUtils;
 import com.thien.finance.identity_service.dto.AuthResponseDto;
 import com.thien.finance.identity_service.dto.TokenType;
 import com.thien.finance.identity_service.dto.UserRegistrationDto;
@@ -22,17 +29,19 @@ import com.thien.finance.identity_service.exception.EntityNotFoundException;
 import com.thien.finance.identity_service.exception.GlobalErrorCode;
 import com.thien.finance.identity_service.exception.InvalidEmailException;
 import com.thien.finance.identity_service.exception.UserAlreadyRegisteredException;
+import com.thien.finance.identity_service.model.dto.Role;
 import com.thien.finance.identity_service.model.dto.Status;
 import com.thien.finance.identity_service.model.dto.User;
+import com.thien.finance.identity_service.model.dto.UserCreationRequest;
 import com.thien.finance.identity_service.model.dto.UserUpdateRequest;
 import com.thien.finance.identity_service.model.entity.RefreshTokenEntity;
 import com.thien.finance.identity_service.model.entity.UserCredential;
+import com.thien.finance.identity_service.model.mapper.UserCreateMapper;
 import com.thien.finance.identity_service.model.mapper.UserInfoMapper;
 import com.thien.finance.identity_service.model.mapper.UserMapper;
 import com.thien.finance.identity_service.model.repository.RefreshTokenRepo;
 import com.thien.finance.identity_service.model.repository.UserCredentialRepository;
-import com.thien.finance.identity_service.model.rest.response.UserResponse;
-import com.thien.finance.identity_service.service.rest.BankingCoreRestClient;
+import com.thien.finance.identity_service.model.repository.httpclient.CoreBankingClient;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
@@ -45,12 +54,17 @@ import lombok.extern.slf4j.Slf4j;
 public class AuthService {
     private final UserCredentialRepository userCredentialRepository;
 
+    private final RSAKeyRecord rsaKeyRecord;
+    
+    private final JwtTokenUtils jwtTokenUtils;
+    
+    private final UserCreateMapper userCreateMapper;
+
+    private final CoreBankingClient coreBankingClient;
 
     private final RefreshTokenRepo refreshTokenRepo;
 
     private final JwtTokenGenerator jwtTokenGenerator;
-    
-    private final BankingCoreRestClient bankingCoreRestClient;
 
     private final UserInfoMapper userInfoMapper;
     
@@ -69,6 +83,8 @@ public class AuthService {
                     .orElseThrow(()->{
                         log.error("[AuthService:userSignInAuth] User: {} not found", authentication.getName());
                         return new ResponseStatusException(HttpStatus.NOT_FOUND,"USER NOT FOUND ");});
+
+            
 
             String accessToken = jwtTokenGenerator.generateAccessToken(authentication);
             String refreshToken = jwtTokenGenerator.generateRefreshToken(authentication);
@@ -149,7 +165,7 @@ public class AuthService {
         String roles = userCredential.getRoles();
 
         // Extract authorities from roles (comma-separated)
-        String[] roleArray = roles.split(",");
+        String[] roleArray = roles.toString().split(",");
         GrantedAuthority[] authorities = Arrays.stream(roleArray)
                 .map(role -> (GrantedAuthority) role::trim)
                 .toArray(GrantedAuthority[]::new);
@@ -163,8 +179,9 @@ public class AuthService {
             log.info("[AuthService:registerUser]User Registration Started with :::{}",userRegistrationDto);
 
             Optional<UserCredential> user = userCredentialRepository.findByEmail(userRegistrationDto.email());
+            Optional<UserCredential> user1 = userCredentialRepository.findByUserName(userRegistrationDto.username());
 
-            if(user.isPresent()){
+            if(user.isPresent() || user1.isPresent()) {
                 throw new Exception("User Already Exist");
             }
 
@@ -183,6 +200,13 @@ public class AuthService {
             creatRefreshTokenCookie(httpServletResponse, refreshToken);
 
             log.info("[AuthService:registerUser] User:{} Successfully registered",savedUserDetails.getUserName());
+
+            // Fetch data to Banking core service
+            UserCreationRequest userRequest = userCreateMapper.convertToUserCreationRequest(userRegistrationDto);
+            String userResponse = coreBankingClient.createUser(userRequest);
+
+            log.info(userResponse.toString());
+
             return   AuthResponseDto.builder()
                     .accessToken(accessToken)
                     .accessTokenExpiry(5 * 60)
@@ -196,28 +220,6 @@ public class AuthService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,e.getMessage());
         }
     }
-
-    // public String saveUser(UserCredential userCredential) {
-    //     Optional<UserCredential> userCredentials = userCredentialRepository.findByEmail(userCredential.getEmail());
-
-    //     if (!userCredentials.isEmpty()) {
-    //         throw new UserAlreadyRegisteredException("This email already registered as a user. Please check and retry", GlobalErrorCode.ERROR_EMAIL_REGISTERED);
-    //     }
-
-    //     UserResponse userResponse = bankingCoreRestClient.getUser(userCredential.getIdentification());
-
-    //     if (userResponse.getId() != null) {
-    //         if (!userResponse.getEmail().equals(userCredential.getEmail())) {
-    //             throw new InvalidEmailException("Incorrect email. Please check and retry", GlobalErrorCode.ERROR_INVALID_EMAIL);
-    //         }
-    //     }
-
-
-
-    //     userCredential.setPassword(passwordEncoder.encode(userCredential.getPassword()));
-    //     userCredentialRepository.save(userCredential);
-    //     return "user added to the system";
-    // }
 
     public List<UserCredential> getUsers(Pageable pageable) {
         return userCredentialRepository.findAll(pageable).getContent();
@@ -242,7 +244,25 @@ public class AuthService {
         return jwtService.generateToken(username);
     }
 
-    public void validateToken(String token) {
-        jwtService.validateToken(token);
+    public boolean validateToken(String token) {
+        // jwtService.validateToken(token);
+        JwtDecoder jwtDecoder =  NimbusJwtDecoder.withPublicKey(rsaKeyRecord.rsaPublicKey()).build();
+
+        Jwt jwtToken = jwtDecoder.decode(token);
+
+        final String userName = jwtTokenUtils.getUserName(jwtToken);
+
+        if (!userName.isEmpty()) {
+            UserDetails userDetails = jwtTokenUtils.userDetails(userName);
+            
+            if (jwtTokenUtils.isTokenValid(jwtToken,userDetails)) {
+                return true;
+            }
+
+            return false;
+        }
+
+        return false;
+        
     }
 }

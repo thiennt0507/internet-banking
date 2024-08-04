@@ -14,7 +14,6 @@ import lombok.Setter;
 @Entity
 @Table(name = "utility_payment")
 public class UtilityPaymentEntity extends AuditAware {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -27,5 +26,4 @@ public class UtilityPaymentEntity extends AuditAware {
 
     @Enumerated(EnumType.STRING)
     private TransactionStatus status;
-
 }

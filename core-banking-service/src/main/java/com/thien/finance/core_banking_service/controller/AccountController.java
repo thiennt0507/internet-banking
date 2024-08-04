@@ -22,6 +22,7 @@ public class AccountController {
     @GetMapping("/bank-account/{account_number}")
     public ResponseEntity getBankAccount(@PathVariable("account_number") String accountNumber) {
         log.info("Reading account by ID {}", accountNumber);
+        
         return ResponseEntity.ok(accountService.readBankAccount(accountNumber));
     }
 

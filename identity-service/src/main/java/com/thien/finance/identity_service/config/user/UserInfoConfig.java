@@ -18,7 +18,7 @@ public class UserInfoConfig implements UserDetails{
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return Arrays
-                .stream(credentials.getRoles()
+                .stream(credentials.getRoles().toString()
                         .split(","))
                 .map(SimpleGrantedAuthority::new)
                 .toList();

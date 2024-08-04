@@ -10,7 +10,6 @@ import java.util.List;
 public class UserResponse {
     private String name;
     private List<AccountResponse> bankAccounts;
-    private String identificationNumber;
     private Integer id;
     private String email;
 }

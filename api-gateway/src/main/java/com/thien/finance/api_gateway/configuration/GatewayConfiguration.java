@@ -10,8 +10,8 @@ import reactor.core.publisher.Mono;
 
 // @Configuration
 public class GatewayConfiguration {
-    // private static final String HTTP_HEADER_AUTH_USER_ID = "X-Auth-Id";
-    // private static final String UNAUTHORIZED_USER_NAME = "SYSTEM USER";
+    private static final String HTTP_HEADER_AUTH_USER_ID = "X-Auth-Id";
+    private static final String UNAUTHORIZED_USER_NAME = "SYSTEM USER";
 
     // @Bean
     // public GlobalFilter customGlobalFilter() {

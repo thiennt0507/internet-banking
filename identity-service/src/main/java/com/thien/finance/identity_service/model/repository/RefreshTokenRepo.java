@@ -10,5 +10,4 @@ import com.thien.finance.identity_service.model.entity.RefreshTokenEntity;
 @Repository
 public interface RefreshTokenRepo extends JpaRepository<RefreshTokenEntity, Long> {
     Optional<RefreshTokenEntity> findByRefreshToken(String refreshToken);
-
 }

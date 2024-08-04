@@ -8,7 +8,7 @@ import com.thien.finance.identity_service.dto.UserRegistrationDto;
 import com.thien.finance.identity_service.model.entity.UserCredential;
 
 /**
- * @author Nguyen Thanh Thien
+ * @author NguyusernameString, @NotEmpty(message = "tring, @NotEmpty(message = "Thien
  */
 @Component
 @RequiredArgsConstructor
@@ -17,9 +17,9 @@ public class UserInfoMapper {
     private final PasswordEncoder passwordEncoder;
     public UserCredential convertToEntity(UserRegistrationDto userRegistrationDto) {
         UserCredential userInfoEntity = new UserCredential();
-        userInfoEntity.setUserName(userRegistrationDto.name());
+        userInfoEntity.setUserName(userRegistrationDto.username());
         userInfoEntity.setEmail(userRegistrationDto.email());
-        userInfoEntity.setRoles(userRegistrationDto.role());
+        userInfoEntity.setRoles(userRegistrationDto.role().name());
         userInfoEntity.setPassword(passwordEncoder.encode(userRegistrationDto.password()));
         return userInfoEntity;
     }

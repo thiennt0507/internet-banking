@@ -2,7 +2,10 @@ package com.thien.finance.identity_service.model.entity;
 
 import java.util.List;
 
+import org.hibernate.validator.constraints.UniqueElements;
+
 import com.thien.finance.identity_service.model.dto.AuditAware;
+import com.thien.finance.identity_service.model.dto.Role;
 import com.thien.finance.identity_service.model.dto.Status;
 
 import jakarta.persistence.CascadeType;
@@ -32,7 +35,7 @@ public class UserCredential extends AuditAware {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    
+    @Column(nullable = false, unique = true)
     private String userName;
 
     @Column(nullable = false, unique = true)
