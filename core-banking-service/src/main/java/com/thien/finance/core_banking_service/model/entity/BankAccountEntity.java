@@ -3,6 +3,7 @@ package com.thien.finance.core_banking_service.model.entity;
 import java.math.BigDecimal;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.thien.finance.core_banking_service.model.AccountStatus;
 import com.thien.finance.core_banking_service.model.AccountType;
 
@@ -37,5 +38,6 @@ public class BankAccountEntity {
     private UserEntity user;
 
     @OneToMany(mappedBy = "account", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JsonBackReference
     private List<TransactionEntity> transactions;
 }

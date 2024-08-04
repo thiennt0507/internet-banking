@@ -2,6 +2,7 @@ package com.thien.finance.core_banking_service.model.entity;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.thien.finance.core_banking_service.model.Role;
 
 import jakarta.persistence.CascadeType;
@@ -32,5 +33,6 @@ public class UserEntity {
     private String role;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JsonManagedReference
     private List<BankAccountEntity> accounts;
 }

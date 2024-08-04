@@ -40,8 +40,7 @@ public class UserService extends BaseRedisServiceImpl{
     public User readMe(Authentication authentication) {
         String username = authentication.getName();
         Optional<UserEntity> userEntity = userRepository.findByUserName(username);
-        
-        
+
         if (!userEntity.isPresent()) {
             throw new EntityNotFoundException("User not found");
         }
