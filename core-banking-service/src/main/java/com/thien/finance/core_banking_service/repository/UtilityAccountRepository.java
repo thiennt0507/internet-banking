@@ -8,4 +8,5 @@ import java.util.Optional;
 
 public interface UtilityAccountRepository extends JpaRepository<UtilityAccountEntity, Long> {
     Optional<UtilityAccountEntity> findByProviderName(String provider);
+    Optional<UtilityAccountEntity> findByNumber(String number);
 }

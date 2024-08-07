@@ -30,5 +30,4 @@ public class CustomJwtDecoder implements JwtDecoder{
             throw new JwtException("Invalid JWT token", e);
         }
     }
-    
 }

@@ -35,4 +35,8 @@ public class UserEntity {
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JsonManagedReference
     private List<BankAccountEntity> accounts;
+
+    @OneToMany(mappedBy = "userEntityUpdated", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JsonManagedReference
+    private List<UtilityAccountEntity> utilityAccounts;
 }

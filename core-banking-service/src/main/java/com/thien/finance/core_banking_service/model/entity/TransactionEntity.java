@@ -10,7 +10,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
-@Builder
+// @Builder
 @Getter
 @Setter
 @Entity
@@ -34,4 +34,9 @@ public class TransactionEntity {
     @ManyToOne
     @JoinColumn(name = "transaction_id")
     private BankAccountEntity account;
+
+    @PostPersist
+    public void addDataToRedis() {
+        
+    }
 }

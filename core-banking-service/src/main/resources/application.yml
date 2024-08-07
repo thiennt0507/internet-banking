@@ -24,6 +24,11 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
+  kafka:
+    bootstrap-servers: localhost:9094
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 #  docker for database core banking:  docker run -dp 3307:3306 --name core-banking -e MYSQL_ROOT_PASSWORD=123456 mysql
 
 jwt:

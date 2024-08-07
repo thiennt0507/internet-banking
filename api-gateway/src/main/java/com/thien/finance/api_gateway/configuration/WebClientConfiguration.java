@@ -28,7 +28,5 @@ public class WebClientConfiguration {
         HttpServiceProxyFactory httpServiceProxyFactory = HttpServiceProxyFactory.builderFor(WebClientAdapter.create(webClient)).build();
 
         return httpServiceProxyFactory.createClient(IdentityClient.class);
-
-        
     }
 }

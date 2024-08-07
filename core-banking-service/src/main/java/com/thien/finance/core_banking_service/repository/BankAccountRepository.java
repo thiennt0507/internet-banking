@@ -4,8 +4,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.thien.finance.core_banking_service.model.entity.BankAccountEntity;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface BankAccountRepository extends JpaRepository<BankAccountEntity, Long> {
     Optional<BankAccountEntity> findByNumber(String accountNumber);
+    Optional<List<BankAccountEntity>> findByUserId(Long id);
 }

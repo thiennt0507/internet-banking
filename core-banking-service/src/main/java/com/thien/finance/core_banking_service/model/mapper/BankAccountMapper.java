@@ -27,12 +27,6 @@ public class BankAccountMapper extends BaseMapper<BankAccountEntity, BankAccount
             userDto.setUserName(entity.getUser().getUserName());
             userDto.setEmail(entity.getUser().getEmail());
 
-            // dto.setActualBalance(entity.getActualBalance());
-            // dto.setAvailableBalance(entity.getAvailableBalance());
-            // dto.setId(entity.getId());
-            // dto.setNumber(entity.getNumber());
-            // dto.setStatus(entity.getStatus());
-            // dto.setType(entity.getType());
             dto.setUser(userDto);
         }
         return dto;

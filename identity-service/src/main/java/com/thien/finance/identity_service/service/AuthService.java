@@ -4,10 +4,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -19,6 +18,7 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.thien.finance.event.dto.NotificationEvent;
 import com.thien.finance.identity_service.config.RSAKeyRecord;
 import com.thien.finance.identity_service.config.jwt.JwtTokenGenerator;
 import com.thien.finance.identity_service.config.jwt.JwtTokenUtils;
@@ -26,10 +26,6 @@ import com.thien.finance.identity_service.dto.AuthResponseDto;
 import com.thien.finance.identity_service.dto.TokenType;
 import com.thien.finance.identity_service.dto.UserRegistrationDto;
 import com.thien.finance.identity_service.exception.EntityNotFoundException;
-import com.thien.finance.identity_service.exception.GlobalErrorCode;
-import com.thien.finance.identity_service.exception.InvalidEmailException;
-import com.thien.finance.identity_service.exception.UserAlreadyRegisteredException;
-import com.thien.finance.identity_service.model.dto.Role;
 import com.thien.finance.identity_service.model.dto.Status;
 import com.thien.finance.identity_service.model.dto.User;
 import com.thien.finance.identity_service.model.dto.UserCreationRequest;
@@ -69,6 +65,8 @@ public class AuthService {
     private final UserInfoMapper userInfoMapper;
     
     private final PasswordEncoder passwordEncoder;
+
+    private final KafkaTemplate<String, Object> kafkaTemplate;
 
     private final JWTService jwtService;
 
@@ -178,6 +176,7 @@ public class AuthService {
         try{
             log.info("[AuthService:registerUser]User Registration Started with :::{}",userRegistrationDto);
 
+
             Optional<UserCredential> user = userCredentialRepository.findByEmail(userRegistrationDto.email());
             Optional<UserCredential> user1 = userCredentialRepository.findByUserName(userRegistrationDto.username());
 
@@ -205,7 +204,17 @@ public class AuthService {
             UserCreationRequest userRequest = userCreateMapper.convertToUserCreationRequest(userRegistrationDto);
             String userResponse = coreBankingClient.createUser(userRequest);
 
-            log.info(userResponse.toString());
+            // log.info(userResponse.toString());
+
+            NotificationEvent notificationEvent = NotificationEvent.builder()
+                                                .channel("EMAIL")
+                                                .recepient(savedUserDetails.getEmail())
+                                                .subject("Welcome to internet banking")
+                                                .body("Hello, " + savedUserDetails.getUserName())
+                                                .build();
+
+            // Public message to kafka - notification service
+            kafkaTemplate.send("notification-delivery", notificationEvent);
 
             return   AuthResponseDto.builder()
                     .accessToken(accessToken)

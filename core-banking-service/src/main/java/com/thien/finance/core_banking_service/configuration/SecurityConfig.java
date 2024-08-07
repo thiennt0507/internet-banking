@@ -38,7 +38,7 @@ import lombok.extern.slf4j.Slf4j;
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
-    private static final String [] PUBLIC_ENDPOINTS = {};
+    private static final String [] PUBLIC_ENDPOINTS = {"/api/v1/user/create", "/api/v1/user/update", "/api/v1/user/delete"};
 
     private final CustomJwtDecoder customJwtDecoder;
 

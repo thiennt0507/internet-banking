@@ -15,6 +15,12 @@ spring:
   cloud:
     gateway:
       routes:
+        - id: NOTIFICATION-SERVICE
+          uri: http://localhost:8087
+          predicates:
+            - Path=/notification/**
+          filters:
+            - StripPrefix=1
         - id: IDENTITY-SERVICE
           uri: http://localhost:8089
           # uri: lb://identity-service:8089

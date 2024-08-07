@@ -14,6 +14,9 @@ import com.thien.finance.core_banking_service.service.TransactionService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
 
 @Slf4j
 @RestController
@@ -34,6 +37,17 @@ public class TransactionController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         }
     }
+
+    @GetMapping()
+    public ResponseEntity<?> getTransactionFromAccount(Authentication authentication, @RequestParam(value = "accountNumber") String accountNumber) {
+        log.info("Get transaction from account " + accountNumber );
+        try {
+            return ResponseEntity.ok(transactionService.getAllTransaction(authentication, accountNumber));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+        }
+    }
+    
 
     @PostMapping("/util-payment")
     public ResponseEntity<?> utilPayment(@RequestBody UtilityPaymentRequest utilityPaymentRequest) {

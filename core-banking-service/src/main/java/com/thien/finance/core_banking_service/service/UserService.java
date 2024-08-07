@@ -96,8 +96,6 @@ public class UserService extends BaseRedisServiceImpl{
         
         Boolean isHasDataInRedis = this.keyExists(KEY_ALL_USER);
 
-        System.out.println(isHasDataInRedis);
-
         if (isHasDataInRedis) {
             log.info("Get data in redis");
            users = (List<User>) this.get(KEY_ALL_USER);
