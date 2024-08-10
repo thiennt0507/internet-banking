@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 import com.thien.finance.core_banking_service.model.AccountStatus;
 import com.thien.finance.core_banking_service.model.AccountType;
 import com.thien.finance.core_banking_service.model.dto.BankAccount;
-import com.thien.finance.core_banking_service.model.dto.User;
 import com.thien.finance.core_banking_service.model.dto.UtilityAccount;
 import com.thien.finance.core_banking_service.model.entity.BankAccountEntity;
 import com.thien.finance.core_banking_service.model.entity.UserEntity;
@@ -128,16 +127,14 @@ public class AccountService {
             ||
             utilityAccountRepository.findByNumber(utilityAccountDto.getNumber()).isPresent()
         ) {
-            throw new IllegalStateException("Utitily Account has beeen created  with user  " +
-                      utilityAccountRepository.findByProviderName(utilityAccountDto.getProviderName()).get().getUserEntityUpdated().getUserName());
+
+            throw new IllegalStateException("Utitily Account has beeen created  with user  ");
         }
 
         UtilityAccountEntity utilityAccountEntity = new  UtilityAccountEntity() ;
         utilityAccountEntity.setNumber(utilityAccountDto.getNumber());
         utilityAccountEntity.setProviderName(utilityAccountDto.getProviderName());
         utilityAccountEntity.setUserEntityUpdated(userEntity.get());
-
-        System.out.println(userEntity.get().getUserName());
 
         UtilityAccountEntity savedUtilityAccountEntity =  utilityAccountRepository.save(utilityAccountEntity);
 

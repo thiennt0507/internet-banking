@@ -1,5 +1,7 @@
 package com.thien.finance.identity_service.exception;
 
+import org.springframework.http.HttpStatus;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

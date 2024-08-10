@@ -3,6 +3,7 @@ package com.thien.finance.identity_service.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -25,6 +26,7 @@ import org.springframework.security.oauth2.server.resource.web.access.BearerToke
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
@@ -83,8 +85,13 @@ public class AuthConfig {
                 .userDetailsService(userInfoManagerConfig)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(ex -> {
-                    ex.authenticationEntryPoint((request, response, authException) ->
-                            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, authException.getMessage()));
+                    ex.authenticationEntryPoint((request, response, authException) -> {
+
+                        // response.sendError(HttpServletResponse.SC_UNAUTHORIZED, authException.getMessage());
+
+                        throw new ResponseStatusException(HttpStatus.FORBIDDEN, authException.getMessage());
+                    }
+                            );
                 })
                 .httpBasic(withDefaults())
                 .build();

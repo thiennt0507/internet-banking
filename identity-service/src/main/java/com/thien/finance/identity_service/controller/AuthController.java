@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.thien.finance.identity_service.config.jwt.JwtTokenUtils;
 import com.thien.finance.identity_service.dto.ApiResponse;
+import com.thien.finance.identity_service.dto.AuthResponseDto;
 import com.thien.finance.identity_service.dto.UserRegistrationDto;
 import com.thien.finance.identity_service.dto.ValidateReponse;
 import com.thien.finance.identity_service.model.dto.AuthRequest;
@@ -48,9 +49,12 @@ public class AuthController {
 
 
     @PostMapping("/sign-in")
-    public ResponseEntity<?> authenticateUser(Authentication authentication,HttpServletResponse response){
-
-        return ResponseEntity.ok(authService.getJwtTokensAfterAuthentication(authentication,response));
+    public ApiResponse<?> authenticateUser(Authentication authentication,HttpServletResponse response){
+        ApiResponse<AuthResponseDto> apiReponse = new ApiResponse<>();
+        // throw new RuntimeException("Authentication");
+        apiReponse.setMessage("You are logged in");
+        apiReponse.setResult(authService.getJwtTokensAfterAuthentication(authentication,response));
+        return apiReponse;
     }
 
     @PreAuthorize("hasAuthority('SCOPE_REFRESH_TOKEN')")

@@ -4,15 +4,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.json.JSONArray;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.thien.finance.core_banking_service.model.dto.User;
 import com.thien.finance.core_banking_service.model.dto.UserRegister;
 import com.thien.finance.core_banking_service.model.entity.UserEntity;
+import com.thien.finance.core_banking_service.model.mapper.JsonMapper;
 import com.thien.finance.core_banking_service.model.mapper.UserMapper;
 import com.thien.finance.core_banking_service.repository.UserRepository;
 import com.thien.finance.core_banking_service.service.impl.BaseRedisServiceImpl;
@@ -29,6 +32,10 @@ public class UserService extends BaseRedisServiceImpl{
         super(redisTemplate);
         this.userRepository = userRepository;
     }
+
+    ObjectMapper mapper = new ObjectMapper();
+
+    JsonMapper jsonMapper = new JsonMapper();
 
     private static final String KEY_ALL_USER = "allusers";
 
@@ -89,6 +96,7 @@ public class UserService extends BaseRedisServiceImpl{
         return userMapper.convertToDto(userEntity.get());
     }
     
+    @SuppressWarnings("unchecked")
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN' ,'ROLE_MANAGER')")
     public List<User> readUsers(Pageable pageable) {
 
@@ -98,9 +106,9 @@ public class UserService extends BaseRedisServiceImpl{
 
         if (isHasDataInRedis) {
             log.info("Get data in redis");
-           users = (List<User>) this.get(KEY_ALL_USER);
-           this.setTimeToLive(KEY_ALL_USER, 1L);
 
+            users = (List<User>) this.get(KEY_ALL_USER);
+            this.setTimeToLive(KEY_ALL_USER, 1L);
            return users;
         }
 

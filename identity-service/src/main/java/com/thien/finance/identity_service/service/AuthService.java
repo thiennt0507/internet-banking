@@ -76,7 +76,6 @@ public class AuthService {
     public AuthResponseDto getJwtTokensAfterAuthentication(Authentication authentication, HttpServletResponse response) {
         try
         {
-            System.out.println(authentication.getName());
             var userCredential = userCredentialRepository.findByUserName(authentication.getName())
                     .orElseThrow(()->{
                         log.error("[AuthService:userSignInAuth] User: {} not found", authentication.getName());

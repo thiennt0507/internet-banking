@@ -20,7 +20,6 @@ import com.thien.finance.core_banking_service.exception.InsufficientFundsExcepti
 import com.thien.finance.core_banking_service.model.TransactionType;
 import com.thien.finance.core_banking_service.model.dto.BankAccount;
 import com.thien.finance.core_banking_service.model.dto.Transaction;
-import com.thien.finance.core_banking_service.model.dto.UtilityAccount;
 import com.thien.finance.core_banking_service.model.dto.request.FundTransferRequest;
 import com.thien.finance.core_banking_service.model.dto.request.UtilityPaymentRequest;
 import com.thien.finance.core_banking_service.model.dto.response.FundTransferResponse;
@@ -43,24 +42,25 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @Transactional
 @Slf4j
-// @RequiredArgsConstructor
 public class TransactionService extends BaseRedisServiceImpl {
-    public TransactionService(RedisTemplate<String, Object> redisTemplate,
+    public TransactionService(
+                            RedisTemplate<String, Object>  redisTemplate,
                             AccountService accountService,
                             BankAccountRepository bankAccountRepository,
                             TransactionRepository transactionRepository,
                             UserRepository userRepository,
-                            KafkaTemplate<String, Object> kafkaTemplate) {
+                            KafkaTemplate<String, Object> kafkaTemplate
+                            ) {
         super(redisTemplate);
         this.accountService = accountService;
         this.bankAccountRepository = bankAccountRepository;
         this.transactionRepository = transactionRepository;
         this.userRepository = userRepository;
         this.kafkaTemplate = kafkaTemplate;
-
     }
-
+    
     private final AccountService accountService;
+
     private final BankAccountRepository bankAccountRepository;
     private final TransactionRepository transactionRepository;
     private final UserRepository userRepository;
@@ -93,10 +93,6 @@ public class TransactionService extends BaseRedisServiceImpl {
 
         BankAccount fromBankAccount = accountService.readBankAccount(fundTransferRequest.getFromAccount());
 
-        // if (!currentUser.equals(fromBankAccount.getUser().getUserName())) {
-        //     throw new IllegalArgumentException("You are not authorized to perform this operation");
-        // }
-
         
         BankAccount toBankAccount = accountService.readBankAccount(fundTransferRequest.getToAccount());
 
@@ -116,7 +112,7 @@ public class TransactionService extends BaseRedisServiceImpl {
         //validating account balances
         validateBalance(fromBankAccount, utilityPaymentRequest.getAmount());
 
-        UtilityAccount utilityAccount = accountService.readUtilityAccount(utilityPaymentRequest.getProviderId());
+        // UtilityAccount utilityAccount = accountService.readUtilityAccount(utilityPaymentRequest.getProviderId());
 
         BankAccountEntity fromAccount = bankAccountRepository.findByNumber(fromBankAccount.getNumber()).get();
 
@@ -152,6 +148,7 @@ public class TransactionService extends BaseRedisServiceImpl {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public String internalFundTransfer(BankAccount fromBankAccount, BankAccount toBankAccount, BigDecimal amount) {
 
         String transactionId = UUID.randomUUID().toString();
@@ -187,7 +184,7 @@ public class TransactionService extends BaseRedisServiceImpl {
         sendTransaction.setAccount(fromBankAccountEntity);
         sendTransaction.setAmount(amount.negate());
 
-        transactionRepository.save(sendTransaction);
+        TransactionEntity savedSendTransaction = transactionRepository.save(sendTransaction);
 
         toBankAccountEntity.setActualBalance(toBankAccountEntity.getActualBalance().add(amount));
         toBankAccountEntity.setAvailableBalance(toBankAccountEntity.getActualBalance().add(amount));
@@ -210,14 +207,36 @@ public class TransactionService extends BaseRedisServiceImpl {
         receivedTransaction.setTransactionId(transactionId);
         receivedTransaction.setAccount(toBankAccountEntity);
         receivedTransaction.setAmount(amount);
+        
+        TransactionEntity savedReceivedTransaction = transactionRepository.save(receivedTransaction);
 
-        transactionRepository.save(receivedTransaction);
+        String keyRedisSender = KEY_PREFIX + account_sender.getUser().getUserName() + "_" + fromBankAccount.getNumber();
+
+        String keyRedisReceipent = KEY_PREFIX + account_reciepent.getUser().getUserName() + "_" + toBankAccount.getNumber();
+
+        List<Transaction> currentTransactions = new ArrayList<Transaction>();
+
+        if (this.keyExists(keyRedisSender)) {
+            currentTransactions = (List<Transaction>) this.get(keyRedisSender);
+            currentTransactions.add(transactinmapper.convertToDto(savedSendTransaction));
+            this.set(keyRedisSender, currentTransactions);
+            this.setTimeToLive(keyRedisSender, 7L);
+        }
+
+        if (this.keyExists(keyRedisReceipent)) {
+            currentTransactions = (List<Transaction>) this.get(keyRedisReceipent);
+            currentTransactions.add(transactinmapper.convertToDto(savedReceivedTransaction));
+
+            this.set(keyRedisReceipent, currentTransactions);
+            this.setTimeToLive(keyRedisReceipent, 7L);
+        }
 
         return transactionId;
 
     }
 
 
+    @SuppressWarnings("unchecked")
     public List<Transaction> getAllTransaction(Authentication authentication, String accountNumber) {
         String currentUserName  = authentication.getName();
         Optional<BankAccountEntity> bankAccountEntity = checkAccountNumber(currentUserName, accountNumber);

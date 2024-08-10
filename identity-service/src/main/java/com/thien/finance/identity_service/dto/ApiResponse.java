@@ -1,5 +1,7 @@
 package com.thien.finance.identity_service.dto;
 
+import org.springframework.http.HttpStatus;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import lombok.AccessLevel;
@@ -17,8 +19,7 @@ import lombok.experimental.FieldDefaults;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ApiResponse<T> {
     @Builder.Default
-    private int code = 1000;
-
+    private int code = HttpStatus.OK.value();
     private String message;
     private T result;
 }

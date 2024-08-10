@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.thien.finance.core_banking_service.model.dto.User;
+
 
 public interface BaseRedisService {
     void set(String key, Object value);

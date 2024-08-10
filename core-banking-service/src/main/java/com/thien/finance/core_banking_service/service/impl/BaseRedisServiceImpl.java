@@ -3,8 +3,10 @@ package com.thien.finance.core_banking_service.service.impl;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+
 
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -62,17 +64,17 @@ public class BaseRedisServiceImpl implements BaseRedisService{
 
     @Override
     public List<Object> hashGetByFieldPrefix(String key, String fieldPrefix) {
-        List<Object> objects =  new ArrayList<Object>();
+        List<Object> Strings =  new ArrayList<Object>();
 
         Map<String, Object> hashEntries = hashOperations.entries(key);
 
-        for (Map.Entry<String, Object> entry : hashEntries.entrySet()) {
+        for (Entry<String, Object> entry : hashEntries.entrySet()) {
             String currentField = entry.getKey();
             if (currentField.startsWith(fieldPrefix)) {
-                objects.add(entry.getValue());
+                Strings.add(entry.getValue());
             }
         }
-        return objects;
+        return Strings;
     }
 
     @Override
