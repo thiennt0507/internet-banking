@@ -5,15 +5,15 @@ server:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8081/eureka
+      defaultZone: ${REGISTRY_SERVICE_HOST:http://localhost:8081/eureka}
 spring:
   application:
     name: IDENTITY-SERVICE
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/user
-    username: root
-    password: 123456
+    url: ${DB_IDENTITY_CONNECTION:jdbc:mysql://localhost:3306/user}
+    username: ${DB_IDENTIY_USERNAME:root}
+    password: ${DB_IDENTITY_PASSWORD:123456}
   jpa:
     hibernate:
       ddl-auto: create-drop
@@ -24,7 +24,7 @@ spring:
         dialect: org.hibernate.dialect.MySQL8Dialect
 
   kafka:
-    bootstrap-servers: localhost:9094
+    bootstrap-servers: ${KAFKA_HOST:localhost:9094}
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
@@ -34,11 +34,11 @@ spring:
       client:
         registration:
           github:
-            client-id: Ov23liitt20qjqsXmTj4
-            client-secret: b0524b81d48a0fa9b9052ec4bfedbe7bf077aeab
+            client-id: ${GITHUB_CLIENT_ID:Ov23liitt20qjqsXmTj4}
+            client-secret: ${GITHUB_CLIENT_SECRET:b0524b81d48a0fa9b9052ec4bfedbe7bf077aeab}
           google:
-            client-id: 1031581665110-c3gqpjv79925umrisiap27qqtvomus04.apps.googleusercontent.com
-            client-secret: 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
+            client-id: ${GOOGLE_CLIENT_ID:1031581665110-c3gqpjv79925umrisiap27qqtvomus04.apps.googleusercontent.com}
+            client-secret: ${GOOGLE_CLIENT_SECRET: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}
 #  docker for database identity:  docker run -dp 3306:3306 --name identity -e MYSQL_ROOT_PASSWORD=123456 mysql
 
 jwt:
@@ -51,5 +51,5 @@ logging:
 
 app:
   service:
-    core-banking-url: http://localhost:8083/
+    core-banking-url: ${CORE_BANKING_SERVICE_HOST:http://localhost:8083/}
     core-banking-name: core-banking-service

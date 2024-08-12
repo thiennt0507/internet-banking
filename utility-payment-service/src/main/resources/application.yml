@@ -5,15 +5,15 @@ server:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8081/eureka
+      defaultZone: ${REGISTRY_SERVICE_HOST:http://localhost:8081/eureka}
 spring:
   application:
     name: UTILITY-PAYMENT-SERVICE
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3309/utility_payment
-    username: root
-    password: 123456
+    url: ${DB_UTILITY_SERVICE_HOST:jdbc:mysql://localhost:3309/utility_payment}
+    username: ${DB_UTILITY_USERNAME:root}
+    password: ${DB_UTILITY_PASSWORD:123456}
   jpa:
     hibernate:
       ddl-auto: update

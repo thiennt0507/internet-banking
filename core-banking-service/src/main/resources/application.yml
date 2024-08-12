@@ -6,16 +6,16 @@ server:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8081/eureka
+      defaultZone: ${REGISTRY_HOST:http://localhost:8081/eureka}
 
 spring:
   application:
     name: CORE-BANKING-SERVICE
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3307/core_banking
-    username: root
-    password: 123456
+    url: ${DB_CORE_BANKING_CONNECTION:jdbc:mysql://localhost:3307/core_banking}
+    username: ${DB_CORE_BANKING_USERNAME:root}
+    password: ${DB_CORE_BANKING_PASSWORD:123456}
   jpa:
     hibernate:
       ddl-auto: create-drop
@@ -25,7 +25,7 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
   kafka:
-    bootstrap-servers: localhost:9094
+    bootstrap-servers: ${KAFKA_HOST:localhost:9094}
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer

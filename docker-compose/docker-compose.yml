@@ -1,0 +1,18 @@
+# @format
+
+version: "3.8"
+
+services:
+  ## Mysql docker core banking:
+  mysql-core-banking:
+    container_name: mysql-core-banking
+    image: mysql
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD: 123456
+      - MYSQL_DATABASE: core_banking
+    # volumes: -./mysql/data:/var/lib/mysql
+    ports:
+      - "3307:3306"
+    expose:
+      - "3307"

@@ -2,7 +2,6 @@ package com.thien.finance.identity_service.controller;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -20,7 +19,6 @@ import com.thien.finance.identity_service.dto.AuthResponseDto;
 import com.thien.finance.identity_service.dto.UserRegistrationDto;
 import com.thien.finance.identity_service.dto.ValidateReponse;
 import com.thien.finance.identity_service.model.dto.AuthRequest;
-import com.thien.finance.identity_service.model.entity.UserCredential;
 import com.thien.finance.identity_service.service.AuthService;
 
 import jakarta.servlet.http.HttpServletResponse;
@@ -59,24 +57,37 @@ public class AuthController {
 
     @PreAuthorize("hasAuthority('SCOPE_REFRESH_TOKEN')")
     @PostMapping ("/refresh-token")
-    public ResponseEntity<?> getAccessToken(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader){
+    public ApiResponse<?> getAccessToken(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader){
         log.info("[AuthController:getAccessToken]Refresh Token Process Started for user:{}",authorizationHeader);
-        return ResponseEntity.ok(authService.getAccessTokenUsingRefreshToken(authorizationHeader));
+        ApiResponse<Object> apiResponse = new ApiResponse<>();
+        apiResponse.setMessage("Refresh Token succeeded");
+        apiResponse.setResult(authService.getAccessTokenUsingRefreshToken(authorizationHeader));
+        return apiResponse;
     }
 
     @PostMapping("/sign-up")
-    public ResponseEntity<?> registerUser(@Valid @RequestBody UserRegistrationDto userRegistrationDto,
+    public ApiResponse<?> registerUser(@Valid @RequestBody UserRegistrationDto userRegistrationDto,
                                           BindingResult bindingResult, HttpServletResponse httpServletResponse){
 
         log.info("[AuthController:registerUser] Signup Process Started for user:{}",userRegistrationDto.username());
+        ApiResponse apiResponse = new ApiResponse<>();
         if (bindingResult.hasErrors()) {
             List<String> errorMessage = bindingResult.getAllErrors().stream()
                     .map(DefaultMessageSourceResolvable::getDefaultMessage)
                     .toList();
             log.error("[AuthController:registerUser]Errors in user:{}",errorMessage);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
+
+            apiResponse.setMessage("Dang nhap khong thanh cong");
+            apiResponse.setResult(errorMessage);
+            
+            return apiResponse;
+            // return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
         }
-        return ResponseEntity.ok(authService.registerUser(userRegistrationDto,httpServletResponse));
+
+        apiResponse.setMessage("Registed successfully");
+
+        apiResponse.setResult(authService.registerUser(userRegistrationDto,httpServletResponse));
+        return apiResponse;
     }
 
     @PostMapping("/update")
